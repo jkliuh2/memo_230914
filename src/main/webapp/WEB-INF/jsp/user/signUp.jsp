@@ -18,7 +18,7 @@
 						사용 가능한 아이디 입니다.
 					</small>
 					<small id="idCheckDupl" class="text-danger d-none">
-						중복된 아이디 입니다.
+						이미 사용중인 아이디 입니다.
 					</small>
 					<small id="idCheck4Word" class="text-danger d-none">
 						ID는 4자 이상이어야 합니다.
@@ -147,7 +147,7 @@
 					alert("가입을 환영합니다. 로그인 해주세요.");
 					location.href = "/user/sign-in-view"; // 로그인 페이지로 이동
 				} else {
-					// 로직 실패
+					// 로직 실패 (이거 fail 아니다.)
 					alert(data.error_message);
 				}
 			

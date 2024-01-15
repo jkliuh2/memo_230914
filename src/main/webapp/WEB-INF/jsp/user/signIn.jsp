@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-center align-items-center w-100 h-100">
 	<div class="col-2">
 		<%-- 로그인 form --%>
-		<form id="signInForm" method="post" action="/user/sign-in">
+		<form id="loginForm" method="post" action="/user/sign-in">
 			<div class="d-flex justify-content-center align-items-center w-100">
 				<div id="login-input-box">
 				
@@ -33,5 +33,38 @@
 <script>
 	$(document).ready(function() {
 		
+		// 로그인 form 버튼 이벤트
+		$('#loginForm').on('submit', function(e) {
+			e.preventDefault(); // form 기능 막기(화면이동 방지)
+			//alert("로그인");
+			
+			// validation check
+			let loginId = $('input[name=loginId]').val().trim();
+			let password = $('input[name=password]').val();
+			if (!loginId) {
+				alert("아이디를 입력하세요.");
+				return false;
+			}
+			if (!password) {
+				alert("비밀번호를 입력하세요.");
+				return false;
+			}
+			
+			// AJAX - select하고 로그인
+			let url = $(this).attr("action");
+			//console.log(url);
+			let params = $(this).serialize();
+			//console.log(params);
+			
+			$.post(url, params) // request
+			.done(function(data) { // response
+				if (data.result == "성공") {
+					// 로그인 성공 시 글 목록으로 이동
+					location.href = "/post/post-list-view";
+				} else {
+					alert(data.error_message);
+				}
+			}); // AJAX 끝
+		}); // 로그인 form 이벤트
 	}); // 레디이벤트
 </script>
