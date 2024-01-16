@@ -20,9 +20,13 @@ public class PostController {
 	@Autowired
 	private PostBO postBO;
 	
-	
-	// 글 내용 있는 부분
-	// url: http://localhost/post/post-list-view
+	/**
+	 * 글 list 화면
+	 * http://localhost/post/post-list-view
+	 * @param model
+	 * @param session
+	 * @return
+	 */
 	@GetMapping("/post-list-view")
 	public String postListView(Model model, HttpSession session) {
 		// 로그인 정보 조회(권한 검사) - userId null 검사
