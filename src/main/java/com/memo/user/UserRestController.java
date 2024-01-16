@@ -106,8 +106,7 @@ public class UserRestController {
 		// 응답
 		Map<String, Object> result = new HashMap<>();
 		if (user != null) { // 성공
-			// 로그인 처리
-			// 로그인 정보를 세션에 담는다.(사용자 마다)
+			// 로그인 처리 => 로그인 정보를 세션에 담는다.(사용자 마다)
 			HttpSession session = request.getSession();
 			session.setAttribute("userId", user.getId());
 			session.setAttribute("userLoginId", user.getLoginId());
@@ -115,7 +114,7 @@ public class UserRestController {
 			
 			result.put("code", 200);
 			result.put("result", "성공");
-		} else { // 로그인 불가
+		} else { // 로그인 불가(일치하는 유저 정보 없음)
 			result.put("code", 300);
 			result.put("error_message", "존재하지 않는 사용자입니다.");
 		}
