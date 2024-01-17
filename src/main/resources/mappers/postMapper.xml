@@ -10,7 +10,7 @@
 		`post`
 	</select>
 	
-	<!-- userId로 select -->
+	<!-- userId로 post select -->
 	<select id="selectPostListByUserId" resultType="com.memo.post.domain.Post">
 	SELECT
 		`id`
@@ -25,4 +25,26 @@
 	WHERE
 		`userId` = #{userId}
 	</select>
+	
+	<!-- post insert -->
+	<insert id="insertPost">
+	INSERT INTO `POST`
+	(
+		`userId`
+		,`subject`
+		,`content`
+		,`imagePath`
+		,`createdAt`
+		,`updatedAt`
+	)
+	VALUES
+	(
+		#{userId}
+		, #{subject}
+		, #{content}
+		, #{imagePath}
+		, NOW()
+		, NOW()
+	)
+	</insert>
 </mapper>
