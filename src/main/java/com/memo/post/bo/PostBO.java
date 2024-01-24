@@ -10,8 +10,13 @@ import com.memo.common.FileManagerService;
 import com.memo.post.domain.Post;
 import com.memo.post.mapper.PostMapper;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j // Logger를 만든 것과 같은 효과
 @Service
 public class PostBO {
+//	private Logger logger = LoggerFactory.getLogger(PostBO.class);
+//	private Logger logger = LoggerFactory.getLogger(this.getClass);
 	
 	@Autowired
 	private PostMapper postMapper;
@@ -27,14 +32,14 @@ public class PostBO {
 	
 	// insert
 	// input:params(5개) / output:int
-	public int addPost(int userId, String userLoginid, 
+	public int addPost(int userId, String userLoginId, 
 			String subject, String content, MultipartFile file) {
 		
 		String imagePath = null;
 		
 		// file이 null이 아닐 때 => 파일을 경로값으로 변경
 		if (file != null) {
-			imagePath = fileManagerService.saveFile(userLoginid, file);
+			imagePath = fileManagerService.saveFile(userLoginId, file);
 		}
 		
 		return postMapper.insertPost(userId, subject, content, imagePath);
@@ -44,5 +49,63 @@ public class PostBO {
 	// input: id(postId), userId / output:Post
 	public Post getPostByPostIdUserId(int postId, int userId) {
 		return postMapper.selectPostByPostIdUserId(postId, userId);
+	}
+	
+	// 글 update
+	// input: 파라미터들 / output:X
+	public void updatePostById(
+			int userId, String userLoginId, 
+			int postId, String subject, String content, MultipartFile file) {
+		
+		// 주의★ 이미지 Case 3가지(null-null / 있음-null / null(혹은 있음)-있음
+		// 기존글 가져오기(1. 이미지파일 case를 위해, 2. 업데이트 대상이 존재하는지 확인)
+		Post post = postMapper.selectPostByPostIdUserId(postId, userId);
+		if (post == null) {
+			log.info("[글 수정] post is null. postId:{}, userId:{}", postId, userId);
+			return;
+		}
+		
+		// 파일이 있다면
+		// 1. 새 이미지를 업로드
+		// 2. 1번 단계가 성공하면 기존 이미지 제거(기존 이미지가 있다면)
+		String imagePath = null;
+		if (file != null) {
+			// 업로드(서버에 그림파일을)
+			imagePath = fileManagerService.saveFile(userLoginId, file);
+			
+			// 업로드 성공 && 기존 이미지가 있으면 -> 기존 이미지를 제거
+			if (imagePath != null && post.getImagePath() != null) {
+				fileManagerService.deleteFile(post.getImagePath());
+			}
+		}
+		
+		// imagePath = 채워져있거나 / NULL  => 일단 Mapper로 보낸 다음 xml에서 if로 처리
+		// db 업데이트
+		postMapper.updatePostByPostId(postId, subject, content, imagePath);
+	}
+	
+	
+	// 글 삭제
+	// input:postId, userId / output:int(성공하면 1, 실패하면 0)
+	public int deletePostByPostId(int userId, String userLoginId, int postId) {
+		// 삭제할 글이 존재하는가 확인
+		Post post = postMapper.selectPostByPostIdUserId(postId, userId);
+		
+		// 글이 존재하면
+		// 1. 서버에 있는 이미지파일+디렉토리 제거
+		// 2. DB - delete
+		
+		if (post == null) { // 글이 없음
+			return 0;
+		}	
+		
+		
+		// 1. 서버에 있는 이미지파일 제거
+		fileManagerService.deleteFile(post.getImagePath());
+		
+		// 2. DB - delete
+		postMapper.deletePostByPostId(postId);
+		
+		return 1;
 	}
 }

@@ -9,6 +9,9 @@ import java.nio.file.Paths;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component // spring bean
 public class FileManagerService {
 
@@ -59,5 +62,38 @@ public class FileManagerService {
 		// 주소는 이렇게 될 것이다.(예언)
 		// http://localhost/images/aaaa_28952589028/sun.png  => images 부터.
 		return "/images/" + directoryName + "/" + file.getOriginalFilename();
+	}
+	
+	
+	// 이미지 제거 메소드
+	// input:imagePath / output:X
+	public void deleteFile(String imagePath) { // /images/aaaa_1705569414724/리다이렉트.png
+		// 실제 파일 경로: "D:\\SEOJAVA\\6_spring_project\\MEMO\\memo_workspace\\images/"
+		// + "/images/aaaa_1705569414724/리다이렉트.png"
+		
+		// 주소에 겹치는 /images/ 지운다. -> imagePath의 문자열 변환
+		Path path = Paths.get(FILE_UPLOAD_PATH + imagePath.replace("/images/", "")); 
+		
+		// 삭제할 이미지가 존재하는가?
+		if (Files.exists(path)) {
+			try {
+				Files.delete(path); // 파일 삭제
+			} catch (IOException e) {
+				log.info("[파일매니저 삭제] dlalwl tkrwp tlfvo. path:{}", path.toString());
+				return; // 삭제가 잘못될 경우, 중단하고 리턴
+			}
+			
+			// 디렉토리(폴더) 삭제
+			path.getParent(); // 파일경로의 "부모" 경로 -> 자동으로 폴더주소
+			if (Files.exists(path)) {
+				try {
+					Files.delete(path);
+				} catch (IOException e) {
+					log.info("[파일매니저 삭제] dlalwl tkrwp tlfvo. path:{}", path.toString());
+					// 폴더 삭제 실패시.
+					// 마지막 단계라서 return은 하지 않는다.
+				}
+			}
+		}
 	}
 }

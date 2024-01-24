@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,7 +24,15 @@ public class PostRestController {
 	@Autowired
 	private PostBO postBO;
 	
-	// 글쓰기 API
+	/**
+	 * 글쓰기 API
+	 * 
+	 * @param subject
+	 * @param content
+	 * @param file
+	 * @param session
+	 * @return
+	 */
 	@PostMapping("/create")
 	public Map<String, Object> create(
 			@RequestParam("subject") String subject,
@@ -51,6 +61,68 @@ public class PostRestController {
 			result.put("error_message", "DB 저장에 실패했습니다. 다시 시도해주세요.");
 		}
 		
+		return result;
+	}
+	
+	
+	/**
+	 * 글 수정 API
+	 * 
+	 * @param postId
+	 * @param subject
+	 * @param content
+	 * @param file
+	 * @param session
+	 * @return
+	 */
+	@PutMapping("/update")
+	public Map<String, Object> update(
+			@RequestParam("postId") int postId,
+			@RequestParam("subject") String subject,
+			@RequestParam("content") String content,
+			@RequestParam(value = "file", required = false) MultipartFile file,
+			HttpSession session
+			) {
+		
+		// 로그인 검사(권한검사는 한방에 할 것이므로 생략)
+		
+		// 세션에서 관련 정보 가져오기
+		int userId = (int)session.getAttribute("userId"); // 비로그인 상태면 NULL이 처리X -> 오류날것임
+		String userLoginId = (String)session.getAttribute("userLoginId");
+		
+		// db update
+		postBO.updatePostById(userId, userLoginId, postId, subject, content, file);
+		
+		// 응답
+		Map<String, Object> result = new HashMap<>();
+		result.put("code", 200);		
+		result.put("result", "성공");		
+		
+		return result;
+	}
+	
+	
+	// 글 삭제 API
+	@DeleteMapping("/delete")
+	public Map<String, Object> delete(
+			@RequestParam("postId") int postId,
+			HttpSession session) {
+		
+		// 로그인 된 사람의 userId, userLoginId(이미지파일용) 가져오기
+		int userId = (int)session.getAttribute("userId");
+		String userLoginId = (String)session.getAttribute("userLoginId");
+		
+		// DB 
+		int rowCount = postBO.deletePostByPostId(userId, userLoginId, postId);
+		
+		// 응답
+		Map<String, Object> result = new HashMap<>();
+		if (rowCount == 1) {
+			result.put("code", 200);
+		} else if (rowCount == 0) {
+			result.put("code", 500);
+			result.put("error_message", "다른 사람의 글입니다.");
+		}
 		return result;
 	}
 }
