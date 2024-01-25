@@ -79,7 +79,7 @@ public class FileManagerService {
 			try {
 				Files.delete(path); // 파일 삭제
 			} catch (IOException e) {
-				log.info("[파일매니저 삭제] dlalwl tkrwp tlfvo. path:{}", path.toString());
+				log.info("[파일매니저 삭제] 이미지 삭제 실패. path:{}", path.toString());
 				return; // 삭제가 잘못될 경우, 중단하고 리턴
 			}
 			
@@ -89,7 +89,7 @@ public class FileManagerService {
 				try {
 					Files.delete(path);
 				} catch (IOException e) {
-					log.info("[파일매니저 삭제] dlalwl tkrwp tlfvo. path:{}", path.toString());
+					log.info("[파일매니저 삭제] 이미지 삭제 실패. path:{}", path.toString());
 					// 폴더 삭제 실패시.
 					// 마지막 단계라서 return은 하지 않는다.
 				}
