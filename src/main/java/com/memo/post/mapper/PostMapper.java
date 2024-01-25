@@ -40,6 +40,6 @@ public interface PostMapper {
 			@Param("imagePath") String imagePath);
 	
 	// delete
-	// input: id(postId) / output:X
-	public void deletePostByPostId(int postId);
+	// input: id(postId) / output:int(성공시 1 리턴)
+	public int deletePostByPostId(int postId);
 }

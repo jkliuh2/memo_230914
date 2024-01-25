@@ -84,7 +84,7 @@ public class FileManagerService {
 			}
 			
 			// 디렉토리(폴더) 삭제
-			path.getParent(); // 파일경로의 "부모" 경로 -> 자동으로 폴더주소
+			path = path.getParent(); // 파일경로의 "부모" 경로 -> 자동으로 폴더주소
 			if (Files.exists(path)) {
 				try {
 					Files.delete(path);

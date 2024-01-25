@@ -86,26 +86,25 @@ public class PostBO {
 	
 	
 	// 글 삭제
-	// input:postId, userId / output:int(성공하면 1, 실패하면 0)
-	public int deletePostByPostId(int userId, String userLoginId, int postId) {
+	// input:postId, userId / output:x
+	public void deletePostByPostIdUserId(int userId, int postId) {
 		// 삭제할 글이 존재하는가 확인
 		Post post = postMapper.selectPostByPostIdUserId(postId, userId);
 		
-		// 글이 존재하면
-		// 1. 서버에 있는 이미지파일+디렉토리 제거
-		// 2. DB - delete
-		
-		if (post == null) { // 글이 없음
-			return 0;
+		// 글이 없으면
+		if (post == null) { 
+			log.info("[글 삭제] post is null. postId:{}, userId:{}", postId, userId);
+			return;
 		}	
 		
+		// 글이 존재하면
+		// 1. DB에서 삭제 -> 삭제 성공하면 int값 튀어나옴
+		int deleteRowCount = postMapper.deletePostByPostId(postId);
 		
-		// 1. 서버에 있는 이미지파일 제거
-		fileManagerService.deleteFile(post.getImagePath());
-		
-		// 2. DB - delete
-		postMapper.deletePostByPostId(postId);
-		
-		return 1;
+		// 2. DB에서 삭제가 성공하면 && 이미지가 있다면(사실 어차피 fileMane~~에서 null이면 알아서 처리하긴 함) 
+		// -> 이미지를 삭제
+		if (deleteRowCount > 0 && post.getImagePath() != null) {
+			fileManagerService.deleteFile(post.getImagePath());
+		}
 	}
 }

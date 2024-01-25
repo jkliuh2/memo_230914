@@ -102,27 +102,28 @@ public class PostRestController {
 	}
 	
 	
-	// 글 삭제 API
+	/**
+	 * 글 삭제 API
+	 * 
+	 * @param postId
+	 * @param session
+	 * @return
+	 */
 	@DeleteMapping("/delete")
 	public Map<String, Object> delete(
 			@RequestParam("postId") int postId,
 			HttpSession session) {
 		
-		// 로그인 된 사람의 userId, userLoginId(이미지파일용) 가져오기
-		int userId = (int)session.getAttribute("userId");
-		String userLoginId = (String)session.getAttribute("userLoginId");
+		// 로그인 된 사람의 userId 가져오기
+		int userId = (int)session.getAttribute("userId"); // 권한검사는 한번에 해서, 무조건 값은 들어오게 됨
 		
 		// DB 
-		int rowCount = postBO.deletePostByPostId(userId, userLoginId, postId);
+		postBO.deletePostByPostIdUserId(userId, postId);
 		
 		// 응답
 		Map<String, Object> result = new HashMap<>();
-		if (rowCount == 1) {
-			result.put("code", 200);
-		} else if (rowCount == 0) {
-			result.put("code", 500);
-			result.put("error_message", "다른 사람의 글입니다.");
-		}
+		result.put("code", 200);
+		
 		return result;
 	}
 }
