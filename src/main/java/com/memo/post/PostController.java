@@ -29,7 +29,11 @@ public class PostController {
 	 * @return
 	 */
 	@GetMapping("/post-list-view")
-	public String postListView(Model model, HttpSession session) {
+	public String postListView(
+			@RequestParam(value = "prevId", required = false) Integer prevIdParam, 
+			@RequestParam(value = "nextId", required = false) Integer nextIdParam, 
+			Model model, HttpSession session) {
+		
 		// 로그인 정보 조회(권한 검사) - userId null 검사
 		Integer userId = (Integer)session.getAttribute("userId"); // int or null => Integer로 저장+캐스팅
 		if (userId == null) {
@@ -40,9 +44,33 @@ public class PostController {
 		
 		// DB select - 글 목록 조회 => Mybatis
 		// 해당 게시판은 "로그인 된 사람이 쓴 글만" 가져오게끔 한다.
-		List<Post> postList = postBO.getPostListByUserId(userId);
+		List<Post> postList = postBO.getPostListByUserId(userId, prevIdParam, nextIdParam);
+		
+		// 브라우저에 nextId, prevId값을 Model에 넣기위한 작업.
+		int nextId = 0;
+		int prevId = 0;
+		if (postList.isEmpty() == false) {
+			// postList가 비어있을 때[] 오류를 방지하기 위함
+			prevId = postList.get(0).getId(); // List의 가장 처음 글의 id값
+			nextId = postList.get(postList.size() - 1).getId(); // List의 가장 마지막 글의 id값
+			
+			// 이전 방향의 끝인가?
+			// prevId와 post 테이블의 가장 큰 id값과 같으면? -> 이전 페이지 없음
+			if (postBO.isPrevLastPageByUserId(userId, prevId)) {
+				prevId = 0;
+			}
+			
+			// 다음 방향의 끝인가?
+			// nextId와 post 테이블의 가장 작은 id값과 같으면? -> 다음페이지 없음
+			if (postBO.isNextLastPageByUserId(userId, nextId)) {
+				nextId = 0;
+			}
+		}
+		
 		
 		// 응답값
+		model.addAttribute("nextId", nextId);
+		model.addAttribute("prevId", prevId);
 		model.addAttribute("viewName", "post/postList"); // jsp 경로 모델에 담기
 		model.addAttribute("postList", postList);
 		

@@ -1,5 +1,6 @@
 package com.memo.post.bo;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +24,61 @@ public class PostBO {
 	
 	@Autowired
 	private FileManagerService fileManagerService;
+	
+	// 페이징 필드
+	private static final int POST_MAX_SIZE = 3; // 지금은 3으로 고정. 필요하다면 변경or 아예 클래스로 만들수도.
 
 	// userId로 글목록 조회
 	// input:userId / output:List<Post>
-	public List<Post> getPostListByUserId(int userId) {
-		return postMapper.selectPostListByUserId(userId);
+	public List<Post> getPostListByUserId(int userId, Integer prevId, Integer nextId) {
+		// 게시글 번호 10 9 8 | 7 6 5 | 4 3 2 | 1
+		
+		// 예시)  만약 4 3 2 페이지에 있을 때.
+		// 1) 다음: 2보다 작은 3개 DESC -> 그냥 알아서 가져와진다.
+		// 2) 이전: 4보다 큰 3개 ASC(5 6 7) -> 이걸 다시 뒤집기 List reverse(7 6 5)
+		// 3) 페이징 정보 없음: 최신순 3개 DESC -> 끝
+		
+		Integer standardId = null; // 기준이 되는 postId
+		String direction = null; // 방향(이전, 다음, 정보없음)
+		
+		if (prevId != null) { // 1) 이전
+			standardId = prevId; 
+			direction = "prev";
+			
+			// 이전) 리턴 
+			List<Post> postList = postMapper.selectPostListByUserId(userId, standardId, direction, POST_MAX_SIZE);
+			
+			// ASC 상태 뒤집기 - reverse List
+			Collections.reverse(postList); // 뒤집고 저장까지 해줌
+			
+			return postList;
+			
+		} else if(nextId != null) { // 2) 다음
+			standardId = nextId; 
+			direction = "next";
+		}
+		// 3) 페이징 정보 없음 -> 둘 다 null
+		
+		// 리턴 - 3. 페이징정보 없음 + 1. 다음(얘도 그냥 이거 쓰면 되겠다)
+		return postMapper.selectPostListByUserId(userId, standardId, direction, POST_MAX_SIZE);
 	}
+	
+	
+	// 마지막 페이지 확인 메소드(이전)
+	public boolean isPrevLastPageByUserId(int userId, int prevId) {
+		// prevId는 페이지가 비어있어도 0으로 들어옴.
+		
+		// userId, sort(방향)
+		int postId = postMapper.selectPostIdByUserIdSort(userId, "DESC"); // 가장 최신 id값 select
+		return postId == prevId; // 같으면 (마지막)-> true / 다르면 false
+	}
+	
+	// 마지막 페이지 확인(다음)
+	public boolean isNextLastPageByUserId(int userId, int nextId) {
+		int postId = postMapper.selectPostIdByUserIdSort(userId, "ASC"); 
+		return postId == nextId; // 같으면 true(마지막) / 다르면 false
+	}
+	
 	
 	// insert
 	// input:params(5개) / output:int

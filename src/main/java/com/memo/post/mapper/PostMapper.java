@@ -1,7 +1,6 @@
 package com.memo.post.mapper;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -11,11 +10,20 @@ import com.memo.post.domain.Post;
 @Mapper
 public interface PostMapper {
 
-	// input:X / output:List<Map>
-	public List<Map<String, Object>> selectPostList();
+	// post-list-view에 보내는 List
+	// 3. 페이징 정보 없음 + 1. 다음
+	// input:loginId + 추가정보들 / output:List<Post>
+	public List<Post> selectPostListByUserId(
+			@Param("userId") int userId,
+			@Param("standardId") Integer standardId,
+			@Param("direction") String direction,
+			@Param("limit") int limit
+			);
 	
-	// input:loginId / output:List<Post>
-	public List<Post> selectPostListByUserId(int userId);
+	// 마지막 id select
+	public int selectPostIdByUserIdSort(
+			@Param("userId") int userId, 
+			@Param("sort") String sort);
 	
 	// insert
 	// input:userId, subject, content, imagePath / output:int
